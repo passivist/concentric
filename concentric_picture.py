@@ -61,8 +61,3 @@ while True:
     frame = spiralOrder(frame)
 
     client.send_message("/image", frame.tolist())
-    
-
-# When everything done, release the capture
-cap.release()
-cv.destroyAllWindows()
