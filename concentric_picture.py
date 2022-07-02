@@ -1,6 +1,8 @@
 import numpy as np
 import cv2 as cv
 from pythonosc.udp_client import SimpleUDPClient
+from null_preview import *
+from picamera2 import *
 import time
 
 dt = 0.025
@@ -10,10 +12,12 @@ ip = "127.0.0.1"
 port = 57120
 client = SimpleUDPClient(ip, port)  # Create client
 
-# CV Setup
-cap = cv.VideoCapture(0)
+# Camera Setup
 size = 16
-window = cv.namedWindow("Window", cv.WINDOW_NORMAL | cv.WINDOW_KEEPRATIO)
+picam2 = Picamera2()
+preview = NullPreview(picam2)
+picam2.configure(picam2.preview_configuration(main={"size": (640, 480)}))
+picam2.start()
 
 def spiralOrder(matrix):
     if (len(matrix) == 0):
@@ -51,32 +55,13 @@ def spiralOrder(matrix):
                 y += directions_columns[direction_index]
     return np.array(result)
 
-if not cap.isOpened():
-    print("Cannot open camera")
-    exit()
 
 while True:
-    # Capture frame-by-frame
-    ret, frame = cap.read()
-    # if frame is read correctly ret is True
-    if not ret:
-        print("Can't receive frame (stream end?). Exiting ...")
-        break
-    # Our operations on the frame come here
-    
-    frame = cv.resize(frame, (size, size))
-    frame = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-    
-    # Display the resulting frame
-    cv.imshow('Frame', frame)
-
+    frame picam2.capture_array()
     frame = spiralOrder(frame)
 
     client.send_message("/image", frame.tolist())
     
-    if cv.waitKey(1) == ord('q'):
-        break
-    time.sleep(dt)
 
 # When everything done, release the capture
 cap.release()
