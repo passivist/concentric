@@ -65,52 +65,16 @@ SynthDef(\grain, {|out, buf=0, rate, pos, pan, amp, sustain|
 	sig = Splay.ar(sig, 1, 1, pan);
 	OffsetOut.ar(out, sig * amp);
 }).add;
-)
 
 ~size = 16*16;
 ~nn = ~makeNN.(~size);
-~nn.next()
-~nn.weights[2]
 
-
-
-(
-var size = ~size;
-~nn.weights = (size + 4).collect{ |i|
-	var zeros;
-	var output_weights;
-	if(i < size){
-		zeros = (0 ! size);
-		output_weights = [1, 0.75, -0.5, 1.75].rotate(i) / i.linlin(0, size-1, 0.1, 1);
-
-		zeros ++ output_weights
-	}{
-		(0 ! (size + 4))
-	}
-};
-)
-
-~nn.nextN(100).flop[3].maxItem
-
-
-
-(
 OSCdef(\x, { |msg|
 	msg = ~parseMsg.(msg);
 	//msg.postln;
 	~nn = ~updateNN.(~nn, msg);
-}, '/image')
-)
+}, '/image');
 
-
-Ndef(\nn).play;
-Ndef(\nn).stop;
-
-~b = Buffer.read(s, "D:/_Samples/EIGENE/Instrumente/Streicher/Orchestral Strings/Waves Chord Change/Ab/01_Abmj7-Fm6(Ab)-97bpm_TNOTR EP3 M06 Where does the truth lie.wav");
-
-~b.play
-
-(
 Tdef(\sonify, {
 	var time;
 	var vals;
@@ -120,21 +84,28 @@ Tdef(\sonify, {
 		vals = ~nn.next;
 		vals.postln;
 		time = vals[0].linlin(low, high, 0.05, 0.15);
-		// Ndef(\nn).set(\freqs, vals.linlin(low, high, 100, 1000));
-
-		Synth(\grain, [
-			\buf, ~b,
-			\rate, [0.25, 0.5, 1, 2, -0.5].at(vals[2].linlin(low, high, 0, 5)),
-			\pos, vals[1].linlin(low, high, 0.1, 0.85),
-			\pan, vals[3].linlin(low, high, -1, 1),
-			\sustain, time*vals[3].linlin(low, high, 0.01, 16),
-			\amp, vals[2].linlin(low, high, 0, 1)
-		]);
+		Ndef(\nn).set(\freqs, vals.linlin(low, high, 100, 1000));
+		//
+		// Synth(\grain, [
+		// 	\buf, ~b,
+		// 	\rate, [0.25, 0.5, 1, 2, -0.5].at(vals[2].linlin(low, high, 0, 5)),
+		// 	\pos, vals[1].linlin(low, high, 0.1, 0.85),
+		// 	\pan, vals[3].linlin(low, high, -1, 1),
+		// 	\sustain, time*vals[3].linlin(low, high, 0.01, 16),
+		// 	\amp, vals[2].linlin(low, high, 0, 1)
+		// ]);
 
 		time.wait;
 	}
-})
+});
 )
+
+
+Ndef(\nn).play;
+Ndef(\nn).stop;
+
+// ~b = Buffer.read(s, "D:/_Samples/EIGENE/Instrumente/Streicher/Orchestral Strings/Waves Chord Change/Ab/01_Abmj7-Fm6(Ab)-97bpm_TNOTR EP3 M06 Where does the truth lie.wav");
+// ~b.play
 
 Tdef(\sonify).play
 Tdef(\sonify).stop

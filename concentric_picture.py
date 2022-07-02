@@ -1,7 +1,7 @@
 import numpy as np
 import cv2 as cv
 from pythonosc.udp_client import SimpleUDPClient
-from null_preview import *
+# from null_preview import *
 from picamera2 import *
 import time
 
@@ -15,7 +15,7 @@ client = SimpleUDPClient(ip, port)  # Create client
 # Camera Setup
 size = 16
 picam2 = Picamera2()
-preview = NullPreview(picam2)
+#preview = NullPreview(picam2)
 picam2.configure(picam2.preview_configuration(main={"size": (640, 480)}))
 picam2.start()
 
@@ -57,7 +57,9 @@ def spiralOrder(matrix):
 
 
 while True:
-    frame picam2.capture_array()
-    frame = spiralOrder(frame)
+    frame = picam2.capture_array()
+    frame = cv.resize(frame, (size, size))
+    frame = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+    # frame = spiralOrder(frame)
 
     client.send_message("/image", frame.tolist())
