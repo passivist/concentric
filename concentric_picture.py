@@ -5,7 +5,7 @@ from pythonosc.udp_client import SimpleUDPClient
 from picamera2 import *
 import time
 
-dt = 0.025
+dt = 0.1
 
 ## OSC Setup
 ip = "127.0.0.1"
@@ -13,7 +13,7 @@ port = 57120
 client = SimpleUDPClient(ip, port)  # Create client
 
 # Camera Setup
-size = 16
+size = 10
 picam2 = Picamera2()
 #preview = NullPreview(picam2)
 picam2.configure(picam2.preview_configuration(main={"size": (640, 480)}))
@@ -60,6 +60,8 @@ while True:
     frame = picam2.capture_array()
     frame = cv.resize(frame, (size, size))
     frame = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-    # frame = spiralOrder(frame)
+    frame = spiralOrder(frame)
 
     client.send_message("/image", frame.tolist())
+    
+    time.sleep(dt)
